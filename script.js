@@ -1,42 +1,59 @@
 //your JS code here. If required.
-function delay(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
-        }
+// Function to create a promise that resolves after a random time between min and max seconds
+function createRandomPromise(min, max) {
+  const randomTime = Math.random() * (max - min) + min;
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve(randomTime.toFixed(3)); // Resolve with the time taken (formatted to 3 decimal places)
+    }, randomTime * 1000); // Convert seconds to milliseconds
+  });
+}
 
-        const outputTable = document.getElementById('output');
-        const loadingRow = document.getElementById('loading-row');
+// Array to store the promises
+const promises = [
+  createRandomPromise(1, 3),
+  createRandomPromise(1, 3),
+  createRandomPromise(1, 3)
+];
 
-        const promises = [
-            delay(Math.random() * 2000 + 1000), // Between 1 and 3 seconds
-            delay(Math.random() * 2000 + 1000),
-            delay(Math.random() * 2000 + 1000)
-        ];
+// Select the loading row and output tbody elements
+const loadingRow = document.getElementById("loading-row");
+const outputBody = document.getElementById("output");
 
-        Promise.all(promises)
-            .then(() => {
-                outputTable.removeChild(loadingRow);
+// Wait for all promises to resolve
+Promise.all(promises)
+  .then((times) => {
+    // Remove the loading row
+    loadingRow.remove();
 
-                promises.forEach((promise, index) => {
-                    const row = document.createElement('tr');
-                    const nameCell = document.createElement('td');
-                    const timeCell = document.createElement('td');
+    // Create rows for each promise result
+    times.forEach((time, index) => {
+      const row = document.createElement("tr");
+      const promiseCell = document.createElement("td");
+      const timeCell = document.createElement("td");
 
-                    nameCell.textContent = `Promise ${index + 1}`;
-                    timeCell.textContent = (promise / 1000).toFixed(3);
+      promiseCell.textContent = `Promise ${index + 1}`;
+      timeCell.textContent = time;
 
-                    row.appendChild(nameCell);
-                    row.appendChild(timeCell);
-                    outputTable.appendChild(row);
-                });
+      row.appendChild(promiseCell);
+      row.appendChild(timeCell);
+      outputBody.appendChild(row);
+    });
 
-                const totalRow = document.createElement('tr');
-                const totalNameCell = document.createElement('td');
-                const totalTimeCell = document.createElement('td');
+    // Calculate and add the total time row
+    const totalRow = document.createElement("tr");
+    const totalPromiseCell = document.createElement("td");
+    const totalTimeCell = document.createElement("td");
 
-                totalNameCell.textContent = 'Total';
-                totalTimeCell.textContent = (promises.reduce((total, promise) => total + promise, 0) / 1000).toFixed(3);
+    totalPromiseCell.textContent = "Total";
 
-                totalRow.appendChild(totalNameCell);
-                totalRow.appendChild(totalTimeCell);
-                outputTable.appendChild(totalRow);
-            });
+    const totalTime = times.reduce((total, t) => total + parseFloat(t), 0);
+    totalTimeCell.textContent = totalTime.toFixed(3);
+
+    totalRow.appendChild(totalPromiseCell);
+    totalRow.appendChild(totalTimeCell);
+    outputBody.appendChild(totalRow);
+  })
+  .catch((error) => {
+    console.error("An error occurred:", error);
+  });
